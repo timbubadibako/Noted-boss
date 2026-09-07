@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notula Enterprise — AI Meeting Intelligence & Minutes System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617',
+            },
+            accent: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Sleek OLED Robot Display Animations */
+    .robot-screen-container {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .look-left {
+      transform: translateX(-24px) translateY(-4px) rotate(-5deg) !important;
+    }
+    .look-right {
+      transform: translateX(24px) translateY(-4px) rotate(5deg) !important;
+    }
+    .look-curious {
+      transform: translateY(-8px) rotate(-6deg) !important;
+    }
+
+    .nodding-head {
+      animation: precision-nod 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) 2 !important;
+    }
+    @keyframes precision-nod {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      30% { transform: translateY(14px) rotate(1.5deg); }
+      55% { transform: translateY(-3px) rotate(-1deg); }
+      80% { transform: translateY(10px) rotate(1deg); }
+    }
+
+    .oled-pupil {
+      transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .oled-eye-glow {
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.55), inset 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    .speaker-active-border {
+      box-shadow: 0 0 0 1px #2563eb, 0 4px 12px -2px rgba(37, 99, 235, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-brand-50 text-brand-900 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- TOP ENTERPRISE NAVIGATION BAR -->
+  <header class="bg-brand-950 text-white border-b border-brand-800/80 sticky top-0 z-40">
+    <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="w-8 h-8 rounded-lg bg-accent-600 flex items-center justify-center font-bold text-white shadow-sm">
+          <i class="fa-solid fa-waveform-lines text-sm"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm tracking-tight">NOTULA ENTERPRISE</span>
+            <span class="text-[10px] bg-brand-800 text-brand-300 border border-brand-700 px-2 py-0.5 rounded font-mono font-medium">v1.4</span>
+          </div>
+          <p class="text-[11px] text-brand-400">AI Meeting Intelligence & Acoustic Diarization</p>
+        </div>
+      </div>
+
+      <!-- Studio Workflow Navigation Tabs -->
+      <div class="flex items-center bg-brand-900 p-1 rounded-xl border border-brand-800">
+        <button id="nav-btn-operator" onclick="switchMainView('operator')" class="text-xs font-semibold px-3.5 py-1.5 rounded-lg transition bg-accent-600 text-white shadow-sm flex items-center gap-2">
+          <i class="fa-solid fa-table-columns text-[11px]"></i> Live Operator (70:30)
+        </button>
+        <button id="nav-btn-summary" onclick="switchMainView('summary')" class="text-xs font-semibold px-3.5 py-1.5 rounded-lg transition text-brand-400 hover:text-white flex items-center gap-2">
+          <i class="fa-solid fa-file-lines text-[11px]"></i> Dokumen Notulensi & Tugas Divisi
+        </button>
+        <button id="nav-btn-voice" onclick="switchMainView('voice')" class="text-xs font-semibold px-3.5 py-1.5 rounded-lg transition text-brand-400 hover:text-white flex items-center gap-2">
+          <i class="fa-solid fa-fingerprint text-[11px]"></i> Basis Data Profil Suara
+        </button>
+      </div>
+
+      <!-- Tablet Hardware Companion Trigger -->
+      <div class="flex items-center space-x-3">
+        <button onclick="openRobotOverlay()" class="bg-brand-800 hover:bg-brand-700 text-brand-100 border border-brand-700 hover:border-brand-600 text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-display text-accent-400"></i>
+          <span>Mode Meja Tablet</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- VIEW 1: LIVE OPERATOR STUDIO (70:30 SPLIT VIEW) -->
+  <!-- ======================================================== -->
+  <main id="view-operator" class="max-w-[1440px] w-full mx-auto px-6 py-6 flex-1 flex flex-col space-y-5">
+    
+    <!-- METADATA & TELEMETRY STRIP -->
+    <div class="bg-white rounded-2xl border border-brand-200 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Perekaman Aktif</span>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-brand-900">Sprint Planning Q4 & Payment Gateway Integration</h2>
+          <p class="text-[11px] text-brand-500 font-mono">SESSI-ID: 2026-09-07-SP-04 • Akustik: 3 Kanal Terdaftar</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="text-right font-mono">
+          <div class="text-xs text-brand-500">DURASI SESI</div>
+          <div class="text-sm font-bold text-brand-900 font-mono tracking-wider">00:24:18.4</div>
+        </div>
+        <div class="h-8 w-px bg-brand-200"></div>
+        <button onclick="openSpeakerSetupModal()" class="bg-white hover:bg-brand-50 text-brand-800 border border-brand-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-user-gear text-brand-500"></i>
+          <span>Konfigurasi Pembicara</span>
+        </button>
+        <button onclick="switchMainView('summary')" class="bg-brand-900 hover:bg-brand-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-check-double"></i>
+          <span>Finalisasi Notulensi</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 70:30 RESIZABLE CORE LAYOUT -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[580px]">
+      
+      <!-- 70% PANEL: STREAMING TRANSCRIPT & DIRECTIVE DETECTOR -->
+      <div class="lg:col-span-8 bg-white rounded-2xl border border-brand-200 p-5 shadow-sm flex flex-col">
+        
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-brand-100">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-bars-staggered text-accent-600"></i>
+              Transkrip Audio Real-Time (70%)
+            </span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-brand-500">
+            <span class="flex items-center gap-1.5 font-mono text-[11px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-accent-600"></span> Latensi: 280ms
+            </span>
+          </div>
+        </div>
+
+        <!-- UTTERANCE STREAM -->
+        <div class="flex-1 overflow-y-auto space-y-4 pr-1 max-h-[520px]">
+          
+          <!-- Utterance 1 -->
+          <div class="p-4 rounded-xl border border-brand-200 bg-brand-50/60 hover:bg-brand-50 transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-brand-900 bg-brand-200/80 px-2 py-0.5 rounded">Budi Santoso</span>
+                <span class="text-[11px] text-brand-500">Product Lead</span>
+                <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-medium">Sidik Suara: 98.4%</span>
+              </div>
+              <span class="text-[11px] font-mono text-brand-400">00:01:12</span>
+            </div>
+            <p class="text-xs text-brand-800 leading-relaxed">
+              "Baik rekan-rekan, kita mulai rapat sprint planning minggu ini. Target utama divisi adalah menyelesaikan integrasi payment gateway baru sebelum hari Jumat jam 16:00 WIB."
+            </p>
+          </div>
+
+          <!-- Utterance 2 with Directive Trigger -->
+          <div class="p-4 rounded-xl border border-brand-200 bg-brand-50/60 hover:bg-brand-50 transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-brand-900 bg-brand-200/80 px-2 py-0.5 rounded">Siti Rahma</span>
+                <span class="text-[11px] text-brand-500">Backend Lead</span>
+                <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-medium">Sidik Suara: 96.1%</span>
+              </div>
+              <span class="text-[11px] font-mono text-brand-400">00:01:45</span>
+            </div>
+            <p class="text-xs text-brand-800 leading-relaxed">
+              "Untuk backend API payment gateway sudah siap 90%. Saya dan tim DevOps akan pastikan staging deployment selesai besok sore."
+            </p>
+
+            <!-- DIRECTIVE CAPTURE COMPONENT -->
+            <div class="mt-3 bg-white border border-accent-200 rounded-lg p-2.5 flex items-center justify-between text-xs shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold font-mono uppercase bg-accent-100 text-accent-700 px-2 py-0.5 rounded">Tugas Divisi Backend</span>
+                <span class="text-brand-900 font-medium">Staging deployment backend payment gateway</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-brand-500 font-mono">Tenggat: Besok 17:00</span>
+                <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-1.5 py-0.5 rounded">Tervalidasi</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Utterance 3 -->
+          <div class="p-4 rounded-xl border border-brand-200 bg-brand-50/60 hover:bg-brand-50 transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-brand-900 bg-brand-200/80 px-2 py-0.5 rounded">Rina Wijaya</span>
+                <span class="text-[11px] text-brand-500">QA Lead</span>
+                <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-medium">Sidik Suara: 94.8%</span>
+              </div>
+              <span class="text-[11px] font-mono text-brand-400">00:03:02</span>
+            </div>
+            <p class="text-xs text-brand-800 leading-relaxed">
+              "Dari sisi QA kami butuh test case tambahan untuk skenario refund. Tolong Siti siapkan dokumentasi API spec-nya sore ini ya."
+            </p>
+
+            <!-- DIRECTIVE CAPTURE COMPONENT -->
+            <div class="mt-3 bg-white border border-accent-200 rounded-lg p-2.5 flex items-center justify-between text-xs shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold font-mono uppercase bg-accent-100 text-accent-700 px-2 py-0.5 rounded">Tugas Divisi QA & Backend</span>
+                <span class="text-brand-900 font-medium">Penyusunan API Spec refund & Test Cases</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-brand-500 font-mono">Tenggat: Hari Ini</span>
+                <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-1.5 py-0.5 rounded">Tervalidasi</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 30% PANEL: OPERATOR SCRATCHPAD & EXECUTIVE CHECKLIST -->
+      <div class="lg:col-span-4 bg-white rounded-2xl border border-brand-200 p-5 shadow-sm flex flex-col space-y-4">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-brand-100">
+          <span class="text-xs font-bold uppercase tracking-wider text-brand-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-pen-to-square text-accent-600"></i>
+            Catatan Manual Notulis (30%)
+          </span>
+          <span class="text-[11px] font-mono text-brand-400">Tersinkron AI</span>
+        </div>
+
+        <div class="flex-1 flex flex-col">
+          <label class="text-[11px] font-semibold text-brand-600 uppercase tracking-wider mb-1">Catatan Konteks Tambahan:</label>
+          <textarea
+            class="w-full flex-1 p-3 bg-brand-50 border border-brand-200 rounded-xl text-xs text-brand-900 focus:border-accent-600 focus:bg-white outline-none resize-none leading-relaxed font-mono"
+            placeholder="Ketik catatan manual penting notulis... (Akan dikonsolidasikan oleh LLM ke dalam kesimpulan resmi)"
+          >- Pastikan tim CS dan Finance mendapatkan briefing SOP refund 24 jam sebelum rilis.
+- Catatan khusus: Audit log transaksi wajib diaktifkan pada level database.</textarea>
+        </div>
+
+        <!-- Agenda & Milestone Checklist -->
+        <div class="border border-brand-200 rounded-xl p-3 bg-brand-50/50">
+          <span class="text-[11px] font-bold text-brand-700 uppercase tracking-wider block mb-2">Agenda Rapat:</span>
+          <div class="space-y-1.5 text-xs text-brand-800">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked class="w-3.5 h-3.5 text-accent-600 rounded border-brand-300">
+              <span class="line-through text-brand-400">Evaluasi Progress Backend</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked class="w-3.5 h-3.5 text-accent-600 rounded border-brand-300">
+              <span>Rencana Deployment Staging</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-3.5 h-3.5 text-accent-600 rounded border-brand-300">
+              <span>Persetujuan Jadwal Rilis Produksi</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Manual Fast Task Insertion -->
+        <button onclick="promptManualTask()" class="w-full bg-brand-100 hover:bg-brand-200 text-brand-800 border border-brand-200 text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-plus text-[10px]"></i>
+          <span>Tambah Butir Tugas Manual</span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- VIEW 2: POST-MEETING FORMAL MINUTES & DIVISION TABLES -->
+  <!-- ======================================================== -->
+  <main id="view-summary" class="hidden max-w-[1440px] w-full mx-auto px-6 py-6 flex-1 space-y-6">
+    
+    <!-- EXECUTIVE DOCUMENT HEADER -->
+    <div class="bg-white rounded-2xl border border-brand-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-2 font-mono text-[11px] text-brand-500">
+          <span class="bg-brand-100 text-brand-800 font-bold px-2 py-0.5 rounded">DOKUMEN RESMI</span>
+          <span>REF: MOM-2026-0907-01</span>
+          <span>•</span>
+          <span>STATUS: TERVERIFIKASI</span>
+        </div>
+        <h1 class="text-xl font-bold text-brand-900">Risalah Rapat: Sprint Planning Q4 & Integrasi Payment Gateway</h1>
+        <p class="text-xs text-brand-500 mt-1">Diselenggarakan pada Senin, 7 September 2026 • 10:00 - 10:24 WIB</p>
+      </div>
+
+      <!-- FORMAL EXPORT ACTIONS -->
+      <div class="flex items-center gap-2">
+        <button onclick="executeExport('PDF')" class="bg-brand-900 hover:bg-brand-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-file-pdf text-rose-400"></i>
+          <span>Ekspor Dokumen PDF</span>
+        </button>
+        <button onclick="executeExport('Word DOCX')" class="bg-white hover:bg-brand-50 text-brand-800 border border-brand-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-file-word text-blue-600"></i>
+          <span>Ekspor Word (.docx)</span>
+        </button>
+        <button onclick="executeExport('Markdown')" class="bg-white hover:bg-brand-50 text-brand-800 border border-brand-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-code text-brand-600"></i>
+          <span>Salin Markdown</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DOCUMENT METADATA GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-brand-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-500 block mb-1">Pimpinan Rapat</span>
+        <span class="text-xs font-bold text-brand-900">Budi Santoso (Product Lead)</span>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-brand-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-500 block mb-1">Peserta Terdaftar</span>
+        <span class="text-xs font-bold text-brand-900">3 Pembicara (100% Cocok)</span>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-brand-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-500 block mb-1">Total Butir Penugasan</span>
+        <span class="text-xs font-bold text-brand-900">4 Butir Lintas 3 Divisi</span>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-brand-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-500 block mb-1">Tingkat Integritas AI</span>
+        <span class="text-xs font-bold text-emerald-700">98.2% Acoustic Confidence</span>
+      </div>
+    </div>
+
+    <!-- SECTION: EXECUTIVE SUMMARY -->
+    <div class="bg-white rounded-2xl border border-brand-200 p-6 shadow-sm">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-align-left text-accent-600"></i>
+        Ringkasan Eksekutif
+      </h3>
+      <div class="text-xs text-brand-800 leading-relaxed bg-brand-50/70 p-4 rounded-xl border border-brand-200 space-y-2">
+        <p>
+          Rapat koordinasi sprint planning berfokus pada kesiapan teknis dan operasional peluncuran gerbang pembayaran baru. Evaluasi backend mencatatkan penyelesaian modul 90%, dengan jadwal deployment lingkungan staging pada Selasa sore.
+        </p>
+        <p>
+          Verifikasi QA difokuskan pada integritas skenario refund dan audit logging data transaksi. Peluncuran lingkungan produksi disepakati pada hari Jumat jam 16:00 WIB setelah seluruh tahapan verifikasi dinyatakan tuntas.
+        </p>
+      </div>
+    </div>
+
+    <!-- SECTION: TABEL PENUGASAN BERDASARKAN DIVISI -->
+    <div class="bg-white rounded-2xl border border-brand-200 p-6 shadow-sm space-y-6">
+      <div class="flex items-center justify-between pb-3 border-b border-brand-100">
+        <div>
+          <h3 class="text-sm font-bold text-brand-900 flex items-center gap-2">
+            <i class="fa-solid fa-table-list text-accent-600"></i>
+            Tabel Penugasan Berdasarkan Divisi
+          </h3>
+          <p class="text-[11px] text-brand-500">Struktur penugasan formal diekstraksi dari klausa perintah rapat.</p>
+        </div>
+      </div>
+
+      <!-- 1. DIVISI BACKEND & DEVOPS -->
+      <div class="space-y-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-800"></span>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-brand-900">1. Divisi Backend & DevOps</h4>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-brand-200">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-brand-50 text-brand-700 font-semibold border-b border-brand-200 text-[11px]">
+              <tr>
+                <th class="p-3 w-1/2">Deskripsi Tugas / Perintah</th>
+                <th class="p-3">Penanggung Jawab (PIC)</th>
+                <th class="p-3">Tenggat Waktu</th>
+                <th class="p-3">Tingkat Prioritas</th>
+                <th class="p-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-100 text-brand-800">
+              <tr class="hover:bg-brand-50/60 transition">
+                <td class="p-3 font-medium text-brand-900">
+                  Pelaksanaan staging deployment backend payment gateway & integrasi webhook notifikasi
+                </td>
+                <td class="p-3 font-mono text-[11px]">Siti Rahma</td>
+                <td class="p-3 font-mono text-[11px] text-brand-600">Selasa (17:00 WIB)</td>
+                <td class="p-3"><span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold">TINGGI</span></td>
+                <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 text-accent-600 rounded border-brand-300"></td>
+              </tr>
+              <tr class="hover:bg-brand-50/60 transition">
+                <td class="p-3 font-medium text-brand-900">
+                  Penyusunan dokumen spesifikasi API skenario refund dan penanganan kegagalan transaksi
+                </td>
+                <td class="p-3 font-mono text-[11px]">Siti Rahma</td>
+                <td class="p-3 font-mono text-[11px] text-brand-600">Senin (Sore)</td>
+                <td class="p-3"><span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold">MENENGAH</span></td>
+                <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 text-accent-600 rounded border-brand-300"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. DIVISI QUALITY ASSURANCE (QA) -->
+      <div class="space-y-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-800"></span>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-brand-900">2. Divisi Quality Assurance (QA)</h4>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-brand-200">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-brand-50 text-brand-700 font-semibold border-b border-brand-200 text-[11px]">
+              <tr>
+                <th class="p-3 w-1/2">Deskripsi Tugas / Perintah</th>
+                <th class="p-3">Penanggung Jawab (PIC)</th>
+                <th class="p-3">Tenggat Waktu</th>
+                <th class="p-3">Tingkat Prioritas</th>
+                <th class="p-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-100 text-brand-800">
+              <tr class="hover:bg-brand-50/60 transition">
+                <td class="p-3 font-medium text-brand-900">
+                  Penyusunan test cases skenario refund, validasi audit logging, dan uji beban transaksi
+                </td>
+                <td class="p-3 font-mono text-[11px]">Rina Wijaya</td>
+                <td class="p-3 font-mono text-[11px] text-brand-600">Kamis Pagi</td>
+                <td class="p-3"><span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">NORMAL</span></td>
+                <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 text-accent-600 rounded border-brand-300"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. DIVISI PRODUCT & OPERASIONAL -->
+      <div class="space-y-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-800"></span>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-brand-900">3. Divisi Product & Operasional</h4>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-brand-200">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-brand-50 text-brand-700 font-semibold border-b border-brand-200 text-[11px]">
+              <tr>
+                <th class="p-3 w-1/2">Deskripsi Tugas / Perintah</th>
+                <th class="p-3">Penanggung Jawab (PIC)</th>
+                <th class="p-3">Tenggat Waktu</th>
+                <th class="p-3">Tingkat Prioritas</th>
+                <th class="p-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-100 text-brand-800">
+              <tr class="hover:bg-brand-50/60 transition">
+                <td class="p-3 font-medium text-brand-900">
+                  Penyusunan panduan operasional layanan pelanggan (CS) dan materi rilis fitur transaksi
+                </td>
+                <td class="p-3 font-mono text-[11px]">Budi Santoso</td>
+                <td class="p-3 font-mono text-[11px] text-brand-600">Jumat Pagi</td>
+                <td class="p-3"><span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold">TINGGI</span></td>
+                <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 text-accent-600 rounded border-brand-300"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: MATRIKS KEPUTUSAN RAPAT -->
+    <div class="bg-white rounded-2xl border border-brand-200 p-6 shadow-sm">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-gavel text-accent-600"></i>
+        Matriks Keputusan Resmi Rapat
+      </h3>
+      <div class="space-y-3 text-xs text-brand-800">
+        <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 flex items-start gap-3">
+          <span class="w-5 h-5 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">01</span>
+          <div>
+            <span class="font-bold text-brand-900 block mb-0.5">Jadwal Rilis Produksi Resmi</span>
+            <p class="text-brand-600">Disepakati jadwal rilis pada hari Jumat pukul 16:00 WIB dengan syarat seluruh hasil regresi QA berstatus lulus.</p>
+          </div>
+        </div>
+        <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 flex items-start gap-3">
+          <span class="w-5 h-5 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">02</span>
+          <div>
+            <span class="font-bold text-brand-900 block mb-0.5">Standar Keamanan Audit Logging</span>
+            <p class="text-brand-600">Seluruh alur refund wajib mencatatkan data timestamp dan identitas pengguna pemroses secara permanen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- VIEW 3: VOICE BIOMETRICS & MEMORY HUB -->
+  <!-- ======================================================== -->
+  <main id="view-voice" class="hidden max-w-[1440px] w-full mx-auto px-6 py-6 flex-1 space-y-6">
+    <div class="bg-white rounded-2xl border border-brand-200 p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-brand-900">Basis Data Sidik Suara (Voice Memory Hub)</h2>
+        <p class="text-xs text-brand-500">Peta vektor biometrik akustik untuk mengenali peserta secara konsisten lintas rapat.</p>
+      </div>
+      <button class="bg-brand-900 hover:bg-brand-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2">
+        <i class="fa-solid fa-microphone-lines"></i>
+        <span>Pendaftaran Suara Baru (15 Detik)</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="bg-white rounded-2xl border border-brand-200 p-5 shadow-sm space-y-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-900 text-white font-bold text-xs flex items-center justify-center font-mono">
+            BS
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-brand-900">Budi Santoso</h4>
+            <p class="text-[11px] text-brand-500">Product Lead • ID: PRF-0192</p>
+          </div>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-3 border border-brand-100 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-brand-500">Rapat Teridentifikasi:</span>
+            <span class="font-bold text-brand-900 font-mono">14 Sesi</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-brand-500">Akurasi Akustik:</span>
+            <span class="font-bold text-emerald-700 font-mono">98.4% Average</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-brand-200 p-5 shadow-sm space-y-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-900 text-white font-bold text-xs flex items-center justify-center font-mono">
+            SR
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-brand-900">Siti Rahma</h4>
+            <p class="text-[11px] text-brand-500">Backend Lead • ID: PRF-0304</p>
+          </div>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-3 border border-brand-100 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-brand-500">Rapat Teridentifikasi:</span>
+            <span class="font-bold text-brand-900 font-mono">9 Sesi</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-brand-500">Akurasi Akustik:</span>
+            <span class="font-bold text-emerald-700 font-mono">96.1% Average</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-brand-200 p-5 shadow-sm space-y-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-900 text-white font-bold text-xs flex items-center justify-center font-mono">
+            RW
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-brand-900">Rina Wijaya</h4>
+            <p class="text-[11px] text-brand-500">QA Lead • ID: PRF-0422</p>
+          </div>
+        </div>
+        <div class="bg-brand-50 rounded-xl p-3 border border-brand-100 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-brand-500">Rapat Teridentifikasi:</span>
+            <span class="font-bold text-brand-900 font-mono">7 Sesi</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-brand-500">Akurasi Akustik:</span>
+            <span class="font-bold text-emerald-700 font-mono">94.8% Average</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: FAST SPEAKER CONFIGURATION FOR OPERATOR -->
+  <!-- ======================================================== -->
+  <div id="speaker-setup-modal" class="hidden fixed inset-0 bg-brand-950/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-brand-200">
+      <div class="flex items-center justify-between border-b border-brand-100 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-brand-900">Konfigurasi Cepat Pembicara Sesi</h3>
+          <p class="text-[11px] text-brand-500">Sesuaikan nama peserta sebelum tablet ditempatkan di meja</p>
+        </div>
+        <button onclick="closeSpeakerSetupModal()" class="text-brand-400 hover:text-brand-700 text-sm">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-brand-700 block mb-1">Kanal Akustik 1 (Speaker Awal):</label>
+          <input id="cfg-spk-1" type="text" value="Budi Santoso" class="w-full p-2.5 bg-brand-50 border border-brand-200 rounded-lg font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-brand-700 block mb-1">Kanal Akustik 2 (Speaker Kedua):</label>
+          <input id="cfg-spk-2" type="text" value="Siti Rahma" class="w-full p-2.5 bg-brand-50 border border-brand-200 rounded-lg font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-brand-700 block mb-1">Kanal Akustik 3 (Speaker Ketiga):</label>
+          <input id="cfg-spk-3" type="text" value="Rina Wijaya" class="w-full p-2.5 bg-brand-50 border border-brand-200 rounded-lg font-mono">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="saveAndDeployToTable()" class="w-full bg-brand-900 hover:bg-brand-800 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm">
+          Simpan & Luncurkan Mode Meja Tablet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- FULLSCREEN SLEEK TABLET COMPANION (HARDWARE DESK OLED) -->
+  <!-- ======================================================== -->
+  <div id="robot-overlay" class="hidden fixed inset-0 bg-[#050811] text-white z-50 flex flex-col justify-between p-8 select-none">
+    
+    <!-- TOP STATUS STRIP -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-brand-900/80 border border-brand-800 px-3.5 py-1.5 rounded-xl backdrop-blur-md">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-mono text-sm text-sky-300 font-bold tracking-wider" id="robot-timer">00:24:18.4</span>
+        </div>
+        <span class="text-[11px] font-mono bg-brand-900/60 text-brand-400 border border-brand-800 px-3 py-1.5 rounded-xl">
+          ASISTEN MEJA AKTIF • DIARISASI REAL-TIME
+        </span>
+      </div>
+
+      <!-- TESTING EMOTION CONTROLS (CLEAN TEXT) -->
+      <div class="flex items-center gap-2">
+        <div class="bg-brand-900/80 border border-brand-800 rounded-xl p-1 flex items-center gap-1 backdrop-blur-md">
+          <button onclick="setHardwareEmotion('listen-left')" class="text-[11px] font-mono hover:bg-brand-800 text-brand-300 px-2.5 py-1 rounded-lg transition">
+            Noleh Kiri
+          </button>
+          <button onclick="setHardwareEmotion('listen-right')" class="text-[11px] font-mono hover:bg-brand-800 text-brand-300 px-2.5 py-1 rounded-lg transition">
+            Noleh Kanan
+          </button>
+          <button onclick="setHardwareEmotion('nodding')" class="text-[11px] font-mono hover:bg-brand-800 text-emerald-400 font-semibold px-2.5 py-1 rounded-lg transition">
+            Manggut Paham
+          </button>
+          <button onclick="setHardwareEmotion('curious')" class="text-[11px] font-mono hover:bg-brand-800 text-amber-400 px-2.5 py-1 rounded-lg transition">
+            Menyimak
+          </button>
+        </div>
+
+        <button onclick="closeRobotOverlay()" class="bg-brand-900/90 hover:bg-brand-800 text-brand-300 border border-brand-700 text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5">
+          <i class="fa-solid fa-compress text-[10px]"></i>
+          <span>Keluar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CENTER: SLEEK HARDWARE OLED COMPANION FACE -->
+    <div class="flex flex-col items-center justify-center my-auto">
+      
+      <!-- ROBOT HEAD BEZEL -->
+      <div id="robot-head" class="robot-screen-container relative w-[320px] h-[210px] bg-gradient-to-b from-[#0c1220] to-[#060913] border-4 border-[#1e293b] rounded-[48px] p-6 flex flex-col items-center justify-center shadow-2xl">
+        
+        <!-- Precision status indicator -->
+        <div class="absolute top-4 right-6 flex items-center gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+          <span class="text-[9px] font-mono text-brand-500 tracking-wider uppercase">REC</span>
+        </div>
+
+        <!-- EYES ROW -->
+        <div class="relative w-full flex items-center justify-center gap-8">
+          
+          <!-- LEFT EYE -->
+          <div id="eye-left" class="oled-eye-glow w-15 h-18 w-[58px] h-[72px] bg-sky-400 rounded-[26px] flex items-center justify-center relative overflow-hidden transition-all">
+            <div id="pupil-left" class="oled-pupil w-7 h-9 bg-[#050811] rounded-[14px] flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full self-start mt-1 mr-1"></div>
+            </div>
+          </div>
+
+          <!-- RIGHT EYE -->
+          <div id="eye-right" class="oled-eye-glow w-[58px] h-[72px] bg-sky-400 rounded-[26px] flex items-center justify-center relative overflow-hidden transition-all">
+            <div id="pupil-right" class="oled-pupil w-7 h-9 bg-[#050811] rounded-[14px] flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full self-start mt-1 mr-1"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SUBTLE MOUTH / SOUND CONTACT BAR -->
+        <div class="mt-4 flex items-center justify-center">
+          <div class="w-4 h-1 bg-sky-400/80 rounded-full"></div>
+        </div>
+
+      </div>
+
+      <!-- ACOUSTIC RECEPTION TICKER -->
+      <div class="mt-6 max-w-lg bg-brand-900/60 border border-brand-800 rounded-2xl p-4 text-center backdrop-blur-md">
+        <div class="flex items-center justify-center gap-2 mb-1">
+          <span id="robot-speaker-name" class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider">
+            Budi Santoso (Product Lead)
+          </span>
+        </div>
+        <p id="robot-dialogue-text" class="text-xs text-brand-200 leading-relaxed font-mono">
+          "Target utama divisi adalah menyelesaikan integrasi payment gateway baru sebelum hari Jumat jam 16:00 WIB."
+        </p>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM SPEAKER TRACKER STRIP -->
+    <div class="bg-brand-900/60 backdrop-blur-md rounded-2xl border border-brand-800 p-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-[11px] font-mono text-brand-400 uppercase tracking-wider">
+          Pelacak Suara Aktif Meja Rapat
+        </span>
+        <span class="text-[11px] font-mono text-emerald-400">
+          Orientasi Akustik 360°
+        </span>
+      </div>
+
+      <div id="speaker-strip" class="flex items-center gap-3 overflow-x-auto pb-1">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let activeTab = 'operator';
+    let isRobotActive = false;
+
+    let activeSpeakers = [
+      { id: 1, name: "Budi Santoso", role: "Product Lead", active: true, count: 6 },
+      { id: 2, name: "Siti Rahma", role: "Backend Lead", active: false, count: 4 },
+      { id: 3, name: "Rina Wijaya", role: "QA Lead", active: false, count: 2 }
+    ];
+
+    const hardwareDialogues = [
+      {
+        speakerIdx: 0,
+        name: "Budi Santoso (Product Lead)",
+        text: '"Target utama divisi adalah menyelesaikan integrasi payment gateway baru sebelum hari Jumat jam 16:00 WIB."',
+        emotion: "listen-left"
+      },
+      {
+        speakerIdx: 1,
+        name: "Siti Rahma (Backend Lead)",
+        text: '"Untuk backend API payment gateway sudah siap 90%. Saya dan tim DevOps akan pastikan staging deployment selesai besok sore."',
+        emotion: "listen-right"
+      },
+      {
+        speakerIdx: 2,
+        name: "Rina Wijaya (QA Lead)",
+        text: '"Dari sisi QA kami butuh test case tambahan untuk skenario refund. Tolong Siti siapkan dokumentasi API spec-nya sore ini."',
+        emotion: "curious"
+      },
+      {
+        speakerIdx: 0,
+        name: "Budi Santoso (Product Lead)",
+        text: '"Baik, disepakati rilis akhir minggu dengan koordinasi penuh ke tim CS."',
+        emotion: "nodding"
+      }
+    ];
+
+    let currentDialogIdx = 0;
+    let hardwareTimer = null;
+
+    function switchMainView(view) {
+      activeTab = view;
+      const opView = document.getElementById('view-operator');
+      const sumView = document.getElementById('view-summary');
+      const voiceView = document.getElementById('view-voice');
+
+      const btnOp = document.getElementById('nav-btn-operator');
+      const btnSum = document.getElementById('nav-btn-summary');
+      const btnVoice = document.getElementById('nav-btn-voice');
+
+      // Hide all
+      opView.classList.add('hidden');
+      sumView.classList.add('hidden');
+      voiceView.classList.add('hidden');
+
+      btnOp.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition text-brand-400 hover:text-white flex items-center gap-2';
+      btnSum.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition text-brand-400 hover:text-white flex items-center gap-2';
+      btnVoice.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition text-brand-400 hover:text-white flex items-center gap-2';
+
+      if (view === 'operator') {
+        opView.classList.remove('hidden');
+        btnOp.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition bg-accent-600 text-white shadow-sm flex items-center gap-2';
+      } else if (view === 'summary') {
+        sumView.classList.remove('hidden');
+        btnSum.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition bg-accent-600 text-white shadow-sm flex items-center gap-2';
+      } else {
+        voiceView.classList.remove('hidden');
+        btnVoice.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg transition bg-accent-600 text-white shadow-sm flex items-center gap-2';
+      }
+    }
+
+    function renderSpeakerStrip() {
+      const container = document.getElementById('speaker-strip');
+      if (!container) return;
+      container.innerHTML = '';
+
+      activeSpeakers.forEach((s) => {
+        const item = document.createElement('div');
+        item.className = `flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-xs font-mono transition-all ${
+          s.active
+            ? 'bg-accent-600/20 border-accent-500 text-sky-200 speaker-active-border'
+            : 'bg-brand-900 border-brand-800 text-brand-400'
+        }`;
+
+        item.innerHTML = `
+          <div class="w-2 h-2 rounded-full ${s.active ? 'bg-sky-400' : 'bg-brand-600'}"></div>
+          <span class="font-semibold">${s.name}</span>
+          <span class="text-[10px] text-brand-400 font-normal">(${s.count}x)</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function setHardwareEmotion(type) {
+      const head = document.getElementById('robot-head');
+      const pupilL = document.getElementById('pupil-left');
+      const pupilR = document.getElementById('pupil-right');
+
+      head.classList.remove('look-left', 'look-right', 'look-curious', 'nodding-head');
+      pupilL.style.transform = 'translateX(0px) translateY(0px)';
+      pupilR.style.transform = 'translateX(0px) translateY(0px)';
+
+      if (type === 'listen-left') {
+        head.classList.add('look-left');
+        pupilL.style.transform = 'translateX(-10px) translateY(2px)';
+        pupilR.style.transform = 'translateX(-10px) translateY(2px)';
+      } else if (type === 'listen-right') {
+        head.classList.add('look-right');
+        pupilL.style.transform = 'translateX(10px) translateY(2px)';
+        pupilR.style.transform = 'translateX(10px) translateY(2px)';
+      } else if (type === 'curious') {
+        head.classList.add('look-curious');
+        pupilL.style.transform = 'translateY(-6px)';
+        pupilR.style.transform = 'translateY(-6px)';
+      } else if (type === 'nodding') {
+        head.classList.add('nodding-head');
+        pupilL.style.transform = 'translateY(3px)';
+        pupilR.style.transform = 'translateY(3px)';
+      }
+    }
+
+    function rotateHardwareDialog() {
+      currentDialogIdx = (currentDialogIdx + 1) % hardwareDialogues.length;
+      const cur = hardwareDialogues[currentDialogIdx];
+
+      activeSpeakers.forEach((s, idx) => {
+        s.active = (idx === cur.speakerIdx);
+        if (s.active) s.count += 1;
+      });
+
+      document.getElementById('robot-speaker-name').innerText = cur.name;
+      document.getElementById('robot-dialogue-text').innerText = cur.text;
+
+      setHardwareEmotion(cur.emotion);
+      renderSpeakerStrip();
+    }
+
+    function openRobotOverlay() {
+      isRobotActive = true;
+      document.getElementById('robot-overlay').classList.remove('hidden');
+      renderSpeakerStrip();
+      setHardwareEmotion('listen-left');
+
+      if (!hardwareTimer) {
+        hardwareTimer = setInterval(rotateHardwareDialog, 4500);
+      }
+    }
+
+    function closeRobotOverlay() {
+      isRobotActive = false;
+      document.getElementById('robot-overlay').classList.add('hidden');
+      if (hardwareTimer) {
+        clearInterval(hardwareTimer);
+        hardwareTimer = null;
+      }
+    }
+
+    function openSpeakerSetupModal() {
+      document.getElementById('speaker-setup-modal').classList.remove('hidden');
+    }
+
+    function closeSpeakerSetupModal() {
+      document.getElementById('speaker-setup-modal').classList.add('hidden');
+    }
+
+    function saveAndDeployToTable() {
+      const s1 = document.getElementById('cfg-spk-1').value;
+      const s2 = document.getElementById('cfg-spk-2').value;
+      const s3 = document.getElementById('cfg-spk-3').value;
+
+      activeSpeakers[0].name = s1;
+      activeSpeakers[1].name = s2;
+      activeSpeakers[2].name = s3;
+
+      closeSpeakerSetupModal();
+      openRobotOverlay();
+    }
+
+    function promptManualTask() {
+      const t = prompt("Masukkan tugas baru yang ingin ditambahkan:", "Koordinasi SOP transaksi refund bersama Finance");
+      if (t) {
+        alert("Tugas berhasil ditambahkan ke daftar penugasan rapat.");
+      }
+    }
+
+    function executeExport(fmt) {
+      alert(`Mengekspor berkas notulensi ke format ${fmt}...`);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isRobotActive) {
+        closeRobotOverlay();
+      }
+    });
+
+    renderSpeakerStrip();
+  </script>
+</body>
+</html>
