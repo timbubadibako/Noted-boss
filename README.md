@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Noted — Asisten meetingmu boss, noted! 🎙️🤖
 
-## Getting Started
+> **AI-Powered Meeting Intelligence, Acoustic Speaker Diarization, Voice Memory & Hardware Desk Companion.**
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📌 Tentang Noted
+
+**Noted** adalah asisten notulensi rapat cerdas berbasis kecerdasan buatan (AI) yang dirancang untuk mendampingi pimpinan rapat dan tim (*"The Boss"*). Noted mampu merekam suara rapat secara *real-time*, membedakan suara pembicara (*speaker diarization*), mengingat profil sidik suara peserta rapat lintas sesi (*Voice Memory*), serta mengekstrak risalah rapat resmi dengan **Tabel Penugasan Berdasarkan Divisi**.
+
+Selain dapat dioperasikan oleh notulis melalui laptop, Noted juga dapat difungsikan sebagai **Hardware Desk Companion** pada tablet yang diletakkan di tengah meja rapat dengan wajah robot OLED interaktif yang ekspresif, tolah-toleh menyimak pembicara, dan manggut-manggut paham saat poin penting rapat disepakati.
+
+---
+
+## ✨ Fitur Utama
+
+### 1. 🤖 Mode Meja Tablet (Hardware OLED Companion)
+- **Ekspresi Hidup & Responsif:**
+  - *Siap Boss! (Salute)*: Melompat sigap dan siap mencatat tugas saat perintah diberikan.
+  - *Manggut Paham (Nodding)*: Mengangguk 2 kali dengan mata cerah saat kesepakatan tercapai.
+  - *Tolah Kiri & Kanan*: Bola mata dan kepala menoleh mengikuti arah suara pembicara aktif di meja rapat.
+  - *Menyimak Dalam (Curious)*: Memiringkan kepala saat mendengar bahasan mendalam atau pertanyaan.
+  - *Kedip Siap (Wink)*: Mengonfirmasi pencatatan tugas dengan percaya diri.
+- **Bebas Spektrum Kaku:** Wajah robot OLED bersih dengan mata bercahaya alami tanpa grafik spektrum audio yang mengganggu.
+
+### 2. 🖥️ Studio Live Operator (Split Resizable 70 : 30)
+- **Panel Kiri (70% - AI Stream):** Transkripsi *real-time* berstempel waktu, diarisasi pembicara otomatis, serta **Kartu Tangkap Tugas (*Directive Capture*)** yang langsung melabeli tugas ke divisi terkait.
+- **Panel Kanan (30% - Catatan Notulis):** Lembar catatan manual operator dengan fitur auto-save dan daftar centang agenda rapat (*Agenda Checklist*).
+- **Konfigurasi Pembicara Kilat:** Modal 5 detik di awal rapat untuk menyesuaikan nama Person 1, 2, 3 sebelum tablet diletakkan di meja.
+
+### 3. 📑 Dokumen Risalah & Tabel Penugasan Berdasarkan Divisi
+- Risalah rapat eksekutif (*Executive Minutes of Meeting*).
+- **Tabel Tugas Terstruktur per Divisi:**
+  - 🔵 **Divisi Backend & DevOps**: Tugas teknis, PIC, deadline, prioritas, dan kutipan konteks.
+  - 🟣 **Divisi Quality Assurance (QA)**: Pengujian, validasi audit logging, dan uji beban.
+  - 🟢 **Divisi Product & Operasional**: Panduan briefing layanan pelanggan dan materi rilis.
+- **Matriks Keputusan Resmi Rapat** dengan nomor urut dokumen.
+- **Multi-Format Export:** Ekspor PDF Resmi, Word (.docx), dan salin cepat ke Markdown/WhatsApp.
+
+### 4. 👤 Basis Data Sidik Suara (Voice Memory Hub)
+- Katalog biometrik akustik (vektor embedding sidik suara).
+- Mengenali peserta rapat secara konsisten pada sesi-sesi berikutnya tanpa perlu penamaan ulang (rata-rata akurasi >96%).
+
+---
+
+## 🏗️ Arsitektur AI Berlapis (4-Layer Pipeline)
+
+```text
+[ Audio Stream dari Mikrofon Browser / Tablet ]
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────┐
+│  LAYER 1: Speech-to-Text (STT) & Real-time Diarization │
+│  (Deepgram Nova-2 / Faster-Whisper Streaming)          │
+└────────────────────────────┬───────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│  LAYER 2: Acoustic Voice Biometrics & Memory Matching  │
+│  (512-dim Vector Embedding Matching via pgvector)      │
+└────────────────────────────┬───────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│  LAYER 3: Real-Time Intent & Directive Detector (NLP)  │
+│  (Deteksi live perintah tugas divisi & emosi robot)    │
+└────────────────────────────┬───────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│  LAYER 4: Heavy LLM Synthesis & Structured JSON Schema │
+│  (Gemini 2.0 / GPT-4o -> Tabel Tugas Divisi & MoM)     │
+└────────────────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Memulai (Getting Started)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prasyarat
+- Node.js >= 18.0.0
+- npm / yarn / pnpm
 
-## Learn More
+### Instalasi & Menjalankan Aplikasi
 
-To learn more about Next.js, take a look at the following resources:
+1. Clone repositori:
+   ```bash
+   git clone https://github.com/timbubadibako/Noted-boss.git
+   cd Noted-boss
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Instal dependensi:
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Jalankan server pengembangan lokal:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+4. Buka di browser:
+   ```text
+   http://localhost:3000
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Build untuk produksi:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📂 Struktur Direktori
+
+```text
+noted/
+├── app/
+│   ├── globals.css          # Animasi perangkat OLED, ekspresi robot, dan gaya global
+│   ├── layout.tsx           # RootLayout dengan font Inter & JetBrains Mono
+│   └── page.tsx             # Halaman utama (Operator Studio, Risalah, Mode Meja)
+├── components/
+│   ├── MinutesDocument.tsx  # Tampilan risalah resmi & tabel tugas per divisi
+│   ├── OperatorStudio.tsx   # Tampilan split 70:30 operator lapangan
+│   ├── RobotCompanion.tsx   # Komponen karakter robot meja OLED interaktif
+│   ├── SpeakerSetupModal.tsx# Modal konfigurasi pembicara kilat
+│   └── VoiceProfilesView.tsx# Tampilan katalog sidik suara akustik
+├── docs/                    # Dokumentasi SDLC (PRD, SRS, Backlog, Arsitektur)
+├── lib/
+│   ├── mock-data.ts         # Data simulasi sesi rapat dan profil suara
+│   └── types.ts             # Definisi tipe TypeScript
+├── mockups/                 # Mockup interaktif HTML
+└── package.json
+```
+
+---
+
+## 📄 Lisensi
+
+Projek ini dilisensikan di bawah lisensi MIT.
+
+---
+
+*"Siap mencatat seluruh jalannya rapat, Boss!"* 🫡
