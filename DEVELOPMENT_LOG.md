@@ -2,7 +2,7 @@
 
 **Project Name:** Noted  
 **Tagline:** *"Asisten meetingmu boss, noted!"*  
-**Status Projek:** Phase 3 (Next.js Application Implementation Complete & Tested)  
+**Status Projek:** Phase 3 Complete (Enterprise Dashboard, Sidebar, Splash Screen, & All Menu Views Implemented)  
 **Terakhir Diperbarui:** 2026-09-07
 
 ---
@@ -15,24 +15,28 @@
   - [x] Arsitektur 4-Layer AI Pipeline di [`docs/ARCHITECTURE_AND_API_SPEC.md`](file:///home/jrilym/Projects/Draft/noted/docs/ARCHITECTURE_AND_API_SPEC.md).
 
 - [x] **Phase 2 — UI/UX Mockup via HTML Options**
-  - [x] File HTML Mockup Interaktif di [`mockups/meeting_assistant_mockup.html`](file:///home/jrilym/Projects/Draft/noted/mockups/meeting_assistant_mockup.html).
+  - [x] File HTML Mockup Notulensi Interaktif di [`mockups/meeting_assistant_mockup.html`](file:///home/jrilym/Projects/Draft/noted/mockups/meeting_assistant_mockup.html).
+  - [x] File HTML Mockup Splash Screen di [`mockups/splash_screen_mockup.html`](file:///home/jrilym/Projects/Draft/noted/mockups/splash_screen_mockup.html).
 
 - [x] **Phase 3 — Next.js Enterprise Implementation**
-  - [x] Setup Next.js 14 App Router di direktori `noted/`.
-  - [x] `components/RobotCompanion.tsx` (OLED Robot dengan ekspresi: *Siap Boss!*, *Manggut Paham*, *Tolah Kiri/Kanan*, *Menyimak Dalam*, *Kedip Siap*).
-  - [x] `components/OperatorStudio.tsx` (Split panel 70:30 resizable dengan transkrip streaming, deteksi tugas divisi, catatan manual notulis, dan agenda checklist).
-  - [x] `components/MinutesDocument.tsx` (Risalah rapat resmi, ringkasan eksekutif, tabel tugas terkelompok per divisi, matriks keputusan resmi, dan tombol ekspor PDF/Word/Markdown).
-  - [x] `components/VoiceProfilesView.tsx` (Katalog sidik suara biometrik akustik).
-  - [x] `components/SpeakerSetupModal.tsx` (Modal ganti nama pembicara kilat 5 detik).
-  - [x] Pengujian kompilasi: `npm run build` sukses 100% tanpa error.
+  - [x] **Splash Screen / Boot Sequence** ([`components/SplashScreen.tsx`](file:///home/jrilym/Projects/Draft/noted/components/SplashScreen.tsx)): Animasi pembuka diagnostik audio WebRTC, aktivasi mata OLED, dan sapaan *"Siap Boss!"*.
+  - [x] **Sidebar Navigasi Perusahaan** ([`components/Sidebar.tsx`](file:///home/jrilym/Projects/Draft/noted/components/Sidebar.tsx)): Navigasi 7 modul dengan counter badge dinamis.
+  - [x] **Executive Dashboard** ([`components/DashboardView.tsx`](file:///home/jrilym/Projects/Draft/noted/components/DashboardView.tsx)): Hero launcher, 4 metrik efisiensi rapat, daftar rapat terkini, dan tugas prioritas tinggi.
+  - [x] **Papan Tugas Divisi** ([`components/CompanyTasksView.tsx`](file:///home/jrilym/Projects/Draft/noted/components/CompanyTasksView.tsx)): Pemetaan tugas lintas rapat per divisi teknis (Backend, QA, Product) dengan filter & ekspor.
+  - [x] **Tanya Noted / AI Search** ([`components/KnowledgeBaseView.tsx`](file:///home/jrilym/Projects/Draft/noted/components/KnowledgeBaseView.tsx)): Pencarian tanya-jawab semantik ke riwayat keputusan rapat.
+  - [x] **Ruang Rapat & Tablet Kiosk** ([`components/RoomsAndKioskView.tsx`](file:///home/jrilym/Projects/Draft/noted/components/RoomsAndKioskView.tsx)): Manajemen tablet meja, status mic, dan PIN Kiosk.
+  - [x] **Pengaturan & Integrasi** ([`components/SettingsView.tsx`](file:///home/jrilym/Projects/Draft/noted/components/SettingsView.tsx)): Integrasi Google Calendar, Zoom bot, webhook Slack/WhatsApp, dan provider AI.
+  - [x] **OLED Robot Companion** ([`components/RobotCompanion.tsx`](file:///home/jrilym/Projects/Draft/noted/components/RobotCompanion.tsx)): Mode meja tablet dengan ekspresi kaya (*Salute*, *Nodding*, *Tolah Kiri/Kanan*, *Curious*, *Wink*).
+  - [x] **Live Operator Studio 70:30** ([`components/OperatorStudio.tsx`](file:///home/jrilym/Projects/Draft/noted/components/OperatorStudio.tsx)).
+  - [x] **Dokumen Risalah MoM & Tabel Divisi** ([`components/MinutesDocument.tsx`](file:///home/jrilym/Projects/Draft/noted/components/MinutesDocument.tsx)).
 
 - [ ] **Phase 4 — Backend AI Service & Empirical Integration**
-  - [ ] Implementasi service Python FastAPI untuk integrasi WebSocket streaming audio (Deepgram Nova-2 / Faster-Whisper).
+  - [ ] Service Python FastAPI untuk audio streaming WebSocket.
   - [ ] Integrasi `pgvector` untuk pencocokan sidik suara otomatis.
-  - [ ] Integrasi Gemini 2.0 Flash dengan Structured Output JSON Schema untuk ekstraksi tabel tugas divisi secara otomatis.
+  - [ ] Integrasi Gemini 2.0 Flash JSON Schema untuk ekstraksi tabel tugas divisi.
 
 - [ ] **Phase 5 — Deployment & Runbook**
-  - [ ] Docker compose configuration.
+  - [ ] Docker Compose setup.
   - [ ] Runbook panduan penggunaan aplikasi.
 
 ---
@@ -43,6 +47,6 @@
 cd /home/jrilym/Projects/Draft/noted
 npm run dev
 ```
-Akses di browser melalui: `http://localhost:3000`
+Akses di browser: `http://localhost:3000`
 
 ---
