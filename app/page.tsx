@@ -5,32 +5,47 @@ import {
   INITIAL_MEETING_SESSION,
   INITIAL_VOICE_PROFILES,
 } from '@/lib/mock-data';
-import { MeetingSession, Utterance } from '@/lib/types';
+import { MeetingSession, Utterance, DivisionTask } from '@/lib/types';
+import { Sidebar, MainNavSection } from '@/components/Sidebar';
+import { DashboardView } from '@/components/DashboardView';
 import { OperatorStudio } from '@/components/OperatorStudio';
 import { MinutesDocument } from '@/components/MinutesDocument';
+import { CompanyTasksView } from '@/components/CompanyTasksView';
 import { VoiceProfilesView } from '@/components/VoiceProfilesView';
+import { KnowledgeBaseView } from '@/components/KnowledgeBaseView';
+import { RoomsAndKioskView } from '@/components/RoomsAndKioskView';
+import { SettingsView } from '@/components/SettingsView';
 import { RobotCompanion } from '@/components/RobotCompanion';
 import { SpeakerSetupModal } from '@/components/SpeakerSetupModal';
+import { SplashScreen } from '@/components/SplashScreen';
 import {
   TableColumnsSplit,
   FileText,
-  Fingerprint,
   Tablet,
-  AudioWaveform,
+  Zap,
+  Menu,
+  X,
+  Bell,
+  Search,
 } from 'lucide-react';
 
 export default function NotedApp() {
-  const [activeTab, setActiveTab] = useState<'operator' | 'summary' | 'voice'>('operator');
+  const [activeSection, setActiveSection] = useState<MainNavSection>('dashboard');
+  const [meetingTab, setMeetingTab] = useState<'operator' | 'summary'>('operator');
+  const [showSplash, setShowSplash] = useState(false);
   const [isRobotFullscreen, setIsRobotFullscreen] = useState(false);
   const [isSpeakerModalOpen, setIsSpeakerModalOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Centralized session & tasks state
   const [session, setSession] = useState<MeetingSession>(INITIAL_MEETING_SESSION);
+  const [tasks, setTasks] = useState<DivisionTask[]>(INITIAL_MEETING_SESSION.divisionTasks);
   const [activeUtterance, setActiveUtterance] = useState<Utterance | undefined>(
     INITIAL_MEETING_SESSION.utterances[0]
   );
   const [detectedTask, setDetectedTask] = useState<string | undefined>();
 
   const handleSpeakerSave = (newSpeakers: string[]) => {
-    // Update speaker names in utterances
     const updated = session.utterances.map((ut, idx) => {
       if (idx < newSpeakers.length) {
         return { ...ut, speakerName: newSpeakers[idx] };
@@ -38,140 +53,234 @@ export default function NotedApp() {
       return ut;
     });
     setSession({ ...session, utterances: updated });
-    // Auto deploy to robot tablet mode
     setIsRobotFullscreen(true);
   };
 
+  const handleToggleTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted } : t))
+    );
+  };
+
+  const handleAddTask = (newTask: DivisionTask) => {
+    setTasks((prev) => [newTask, ...prev]);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-brand-50 text-brand-900 font-sans">
-      {/* ENTERPRISE APP HEADER */}
-      <header className="bg-brand-950 text-white border-b border-brand-800/80 sticky top-0 z-40">
-        <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
-          {/* BRAND IDENTITY */}
-          <div className="flex items-center space-x-3.5">
-            <div className="w-8 h-8 rounded-lg bg-accent-600 flex items-center justify-center font-bold text-white shadow-sm">
-              <AudioWaveform className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-wider">NOTED</span>
-                <span className="text-[10px] bg-brand-800 text-sky-300 border border-brand-700 px-2 py-0.2 rounded font-mono font-medium">
-                  v1.0
-                </span>
-              </div>
-              <p className="text-[11px] text-brand-400 font-medium">
-                Asisten meetingmu boss, noted!
-              </p>
+    <div className="min-h-screen flex bg-brand-50 text-brand-900 font-sans antialiased selection:bg-accent-100 selection:text-accent-900">
+      
+      {/* DESKTOP SIDEBAR */}
+      <div className="hidden lg:flex">
+        <Sidebar
+          activeSection={activeSection}
+          onSelectSection={(sec) => setActiveSection(sec)}
+          onOpenTabletMode={() => setIsRobotFullscreen(true)}
+          onOpenSplash={() => setShowSplash(true)}
+          taskCount={tasks.length}
+        />
+      </div>
+
+      {/* MOBILE SIDEBAR DRAWER */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div
+            className="fixed inset-0 bg-brand-950/70 backdrop-blur-sm"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+          <div className="relative z-10 w-64 flex">
+            <Sidebar
+              activeSection={activeSection}
+              onSelectSection={(sec) => {
+                setActiveSection(sec);
+                setIsMobileSidebarOpen(false);
+              }}
+              onOpenTabletMode={() => {
+                setIsRobotFullscreen(true);
+                setIsMobileSidebarOpen(false);
+              }}
+              onOpenSplash={() => {
+                setShowSplash(true);
+                setIsMobileSidebarOpen(false);
+              }}
+              taskCount={tasks.length}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* MAIN APPLICATION VIEWPORT */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        
+        {/* TOP ENTERPRISE APP HEADER */}
+        <header className="bg-white border-b border-brand-200 h-16 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-8 shadow-xs">
+          {/* LEFT: MOBILE TOGGLE & BREADCRUMB */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="lg:hidden p-2 text-brand-600 hover:text-brand-900 hover:bg-brand-50 rounded-lg"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 text-xs font-mono">
+              <span className="text-brand-400">NOTED</span>
+              <span className="text-brand-300">/</span>
+              <span className="font-bold text-brand-900 uppercase">
+                {activeSection === 'dashboard'
+                  ? 'Dashboard Utama'
+                  : activeSection === 'meetings'
+                  ? 'Sesi & Risalah Rapat'
+                  : activeSection === 'tasks'
+                  ? 'Papan Tugas Divisi'
+                  : activeSection === 'voice'
+                  ? 'Sidik Suara Tim'
+                  : activeSection === 'knowledge'
+                  ? 'Tanya Noted (AI Search)'
+                  : activeSection === 'rooms'
+                  ? 'Ruang Rapat & Tablet'
+                  : 'Pengaturan & Integrasi'}
+              </span>
             </div>
           </div>
 
-          {/* WORKFLOW NAVIGATION TABS */}
-          <div className="hidden md:flex items-center bg-brand-900 p-1 rounded-xl border border-brand-800">
+          {/* RIGHT: HARDWARE TABLET & QUICK ACTIONS */}
+          <div className="flex items-center space-x-2.5">
             <button
-              onClick={() => setActiveTab('operator')}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 ${
-                activeTab === 'operator'
-                  ? 'bg-accent-600 text-white shadow-sm'
-                  : 'text-brand-400 hover:text-white'
-              }`}
+              onClick={() => setShowSplash(true)}
+              className="bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 font-mono shadow-xs"
+              title="Putar Animasi Boot Sequence"
             >
-              <TableColumnsSplit className="w-3.5 h-3.5" />
-              <span>Live Operator (70:30)</span>
+              <Zap className="w-3.5 h-3.5 text-sky-600" />
+              <span className="hidden sm:inline">Splash Boot</span>
             </button>
-            <button
-              onClick={() => setActiveTab('summary')}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 ${
-                activeTab === 'summary'
-                  ? 'bg-accent-600 text-white shadow-sm'
-                  : 'text-brand-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Dokumen Risalah & Tugas Divisi</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('voice')}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 ${
-                activeTab === 'voice'
-                  ? 'bg-accent-600 text-white shadow-sm'
-                  : 'text-brand-400 hover:text-white'
-              }`}
-            >
-              <Fingerprint className="w-3.5 h-3.5" />
-              <span>Basis Data Profil Suara</span>
-            </button>
-          </div>
 
-          {/* TABLET HARDWARE COMPANION TRIGGER */}
-          <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsRobotFullscreen(true)}
-              className="bg-brand-800 hover:bg-brand-700 text-brand-100 border border-brand-700 hover:border-brand-600 text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-2 shadow-sm"
+              className="bg-brand-900 hover:bg-brand-800 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 shadow-sm font-mono"
             >
               <Tablet className="w-3.5 h-3.5 text-accent-400" />
               <span>Mode Meja Tablet</span>
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* SUB-HEADER MINI ROBOT DOCK (INTEGRATED COMPANION STRIP) */}
-      <div className="bg-brand-900 border-b border-brand-800 px-6 py-2.5 text-xs text-brand-300 flex items-center justify-between max-w-[1440px] w-full mx-auto">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-mono text-[11px] text-brand-200">
-            Hardware Noted Siap: &ldquo;Siap mencatat perintah rapat, Boss!&rdquo;
-          </span>
+        {/* WORKSPACE VIEW CONTAINER */}
+        <div className="flex-1 p-4 sm:p-8 max-w-[1440px] w-full mx-auto">
+          
+          {/* SECTION 1: DASHBOARD UTAMA */}
+          {activeSection === 'dashboard' && (
+            <DashboardView
+              session={session}
+              tasks={tasks}
+              onStartMeeting={() => {
+                setActiveSection('meetings');
+                setMeetingTab('operator');
+              }}
+              onOpenMoM={() => {
+                setActiveSection('meetings');
+                setMeetingTab('summary');
+              }}
+              onOpenTasks={() => setActiveSection('tasks')}
+              onOpenVoice={() => setActiveSection('voice')}
+            />
+          )}
+
+          {/* SECTION 2: MEETINGS (LIVE OPERATOR & MOM STUDIO) */}
+          {activeSection === 'meetings' && (
+            <div className="space-y-6">
+              {/* Internal Tab Switcher for Meetings */}
+              <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-brand-200 shadow-xs">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setMeetingTab('operator')}
+                    className={`text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2 ${
+                      meetingTab === 'operator'
+                        ? 'bg-accent-600 text-white shadow-sm'
+                        : 'text-brand-600 hover:bg-brand-50'
+                    }`}
+                  >
+                    <TableColumnsSplit className="w-3.5 h-3.5" />
+                    <span>Live Operator Studio (70:30)</span>
+                  </button>
+                  <button
+                    onClick={() => setMeetingTab('summary')}
+                    className={`text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2 ${
+                      meetingTab === 'summary'
+                        ? 'bg-accent-600 text-white shadow-sm'
+                        : 'text-brand-600 hover:bg-brand-50'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Dokumen Risalah & Tugas Divisi</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 pr-2 font-mono text-[11px] text-brand-500">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="hidden sm:inline">Koneksi WebRTC Stabil</span>
+                </div>
+              </div>
+
+              {meetingTab === 'operator' ? (
+                <OperatorStudio
+                  session={session}
+                  onSelectUtterance={(ut) => {
+                    setActiveUtterance(ut);
+                    if (ut.detectedDirective) {
+                      setDetectedTask(ut.detectedDirective.division);
+                      setTimeout(() => setDetectedTask(undefined), 3000);
+                    }
+                  }}
+                  onFinalize={() => setMeetingTab('summary')}
+                  onOpenSpeakerConfig={() => setIsSpeakerModalOpen(true)}
+                />
+              ) : (
+                <MinutesDocument session={session} />
+              )}
+            </div>
+          )}
+
+          {/* SECTION 3: PAPAN TUGAS DIVISI */}
+          {activeSection === 'tasks' && (
+            <CompanyTasksView
+              tasks={tasks}
+              onToggleTask={handleToggleTask}
+              onAddTask={handleAddTask}
+            />
+          )}
+
+          {/* SECTION 4: SIDIK SUARA TIM */}
+          {activeSection === 'voice' && (
+            <VoiceProfilesView profiles={INITIAL_VOICE_PROFILES} />
+          )}
+
+          {/* SECTION 5: TANYA NOTED (AI KNOWLEDGE BASE) */}
+          {activeSection === 'knowledge' && <KnowledgeBaseView />}
+
+          {/* SECTION 6: RUANG RAPAT & TABLET */}
+          {activeSection === 'rooms' && <RoomsAndKioskView />}
+
+          {/* SECTION 7: PENGATURAN & INTEGRASI */}
+          {activeSection === 'settings' && <SettingsView />}
+
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setDetectedTask('Backend');
-              setTimeout(() => setDetectedTask(undefined), 3000);
-            }}
-            className="text-[10px] font-mono bg-brand-800 hover:bg-brand-700 text-sky-300 px-2.5 py-1 rounded-md border border-brand-700"
-          >
-            ⚡ Tes Perintah Tugas Divisi
-          </button>
-          <button
-            onClick={() => setIsSpeakerModalOpen(true)}
-            className="text-[10px] font-mono bg-brand-800 hover:bg-brand-700 text-brand-200 px-2.5 py-1 rounded-md border border-brand-700"
-          >
-            ⚙️ Setting Pembicara
-          </button>
-        </div>
+
+        {/* FOOTER */}
+        <footer className="bg-white border-t border-brand-200 py-4 px-6 text-center text-xs text-brand-500 font-mono">
+          &copy; 2026 Noted — AI Meeting Intelligence & Acoustic Diarization. All rights reserved.
+        </footer>
+
       </div>
 
-      {/* MAIN VIEW CONTENT CONTAINER */}
-      <div className="max-w-[1440px] w-full mx-auto px-6 py-6 flex-1">
-        {activeTab === 'operator' && (
-          <OperatorStudio
-            session={session}
-            onSelectUtterance={(ut) => {
-              setActiveUtterance(ut);
-              if (ut.detectedDirective) {
-                setDetectedTask(ut.detectedDirective.division);
-                setTimeout(() => setDetectedTask(undefined), 3000);
-              }
-            }}
-            onFinalize={() => setActiveTab('summary')}
-            onOpenSpeakerConfig={() => setIsSpeakerModalOpen(true)}
-          />
-        )}
+      {/* SPLASH SCREEN & BOOT SEQUENCE MODAL OVERLAY */}
+      {showSplash && (
+        <SplashScreen
+          autoDismissMs={0}
+          onComplete={() => setShowSplash(false)}
+        />
+      )}
 
-        {activeTab === 'summary' && <MinutesDocument session={session} />}
-
-        {activeTab === 'voice' && (
-          <VoiceProfilesView profiles={INITIAL_VOICE_PROFILES} />
-        )}
-      </div>
-
-      {/* FOOTER */}
-      <footer className="bg-white border-t border-brand-200 py-4 text-center text-xs text-brand-500 font-mono">
-        &copy; 2026 Noted — AI Meeting Intelligence & Acoustic Diarization. All rights reserved.
-      </footer>
-
-      {/* FULLSCREEN CUTE ROBOT COMPANION OVERLAY */}
+      {/* FULLSCREEN CUTE OLED ROBOT COMPANION OVERLAY */}
       {isRobotFullscreen && (
         <RobotCompanion
           isFullscreen={true}
@@ -187,6 +296,7 @@ export default function NotedApp() {
         onClose={() => setIsSpeakerModalOpen(false)}
         onSave={handleSpeakerSave}
       />
+
     </div>
   );
 }
