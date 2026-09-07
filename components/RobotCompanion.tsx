@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { RobotEmotion, Utterance } from '@/lib/types';
-import { Maximize2, Minimize2, Sparkles, Volume2, ShieldCheck } from 'lucide-react';
+import { Maximize2, Minimize2, Sparkles, Volume2, ShieldCheck, TableColumnsSplit } from 'lucide-react';
 
 interface RobotCompanionProps {
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  onOpenStudio?: () => void;
   currentUtterance?: Utterance;
   detectedDivisionTask?: string;
 }
@@ -14,6 +15,7 @@ interface RobotCompanionProps {
 export const RobotCompanion: React.FC<RobotCompanionProps> = ({
   isFullscreen = false,
   onToggleFullscreen,
+  onOpenStudio,
   currentUtterance,
   detectedDivisionTask,
 }) => {
@@ -107,11 +109,11 @@ export const RobotCompanion: React.FC<RobotCompanionProps> = ({
 
   return (
     <div
-      className={`relative select-none flex flex-col justify-between ${
+      className={
         isFullscreen
-          ? 'fixed inset-0 bg-[#050811] text-white z-50 p-8'
-          : 'bg-gradient-to-b from-[#0c1220] to-[#060913] text-white rounded-3xl p-6 border border-brand-800 shadow-2xl'
-      }`}
+          ? 'fixed inset-0 w-screen h-screen min-h-screen bg-[#050811] text-white z-50 p-6 sm:p-10 flex flex-col justify-between select-none overflow-hidden'
+          : 'relative w-full bg-gradient-to-b from-[#0c1220] to-[#060913] text-white rounded-3xl p-6 border border-brand-800 shadow-2xl select-none flex flex-col justify-between'
+      }
     >
       {/* TOP STATUS BAR */}
       <div className="flex items-center justify-between">
@@ -128,6 +130,16 @@ export const RobotCompanion: React.FC<RobotCompanionProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onOpenStudio && isFullscreen && (
+            <button
+              onClick={onOpenStudio}
+              className="bg-brand-900/90 hover:bg-brand-800 text-sky-300 border border-sky-500/40 text-xs font-mono font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm"
+            >
+              <TableColumnsSplit className="w-3.5 h-3.5" />
+              <span>Buka Studio Operator (70:30)</span>
+            </button>
+          )}
+
           {onToggleFullscreen && (
             <button
               onClick={onToggleFullscreen}
@@ -136,7 +148,7 @@ export const RobotCompanion: React.FC<RobotCompanionProps> = ({
               {isFullscreen ? (
                 <>
                   <Minimize2 className="w-3.5 h-3.5" />
-                  <span>Kembali</span>
+                  <span>Tutup Fullscreen</span>
                 </>
               ) : (
                 <>

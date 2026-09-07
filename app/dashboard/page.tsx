@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   INITIAL_MEETING_SESSION,
@@ -29,7 +29,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export default function DashboardWorkspace() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const tenantName = searchParams.get('tenant') || 'PT Maju Teknologi Indonesia';
 
@@ -281,30 +281,19 @@ export default function DashboardWorkspace() {
         />
       )}
 
-      {/* FULLSCREEN CUTE OLED ROBOT COMPANION (WITH BUTTON TO SWITCH TO 70:30 STUDIO) */}
+      {/* FULLSCREEN CUTE OLED ROBOT COMPANION */}
       {isRobotFullscreen && (
-        <div className="fixed inset-0 z-50">
-          <RobotCompanion
-            isFullscreen={true}
-            onToggleFullscreen={() => setIsRobotFullscreen(false)}
-            currentUtterance={activeUtterance}
-            detectedDivisionTask={detectedTask}
-          />
-          {/* Quick switcher to 70:30 Studio floating on top right of the robot screen */}
-          <div className="fixed top-8 right-32 z-50">
-            <button
-              onClick={() => {
-                setIsRobotFullscreen(false);
-                setActiveSection('meetings');
-                setMeetingTab('operator');
-              }}
-              className="bg-brand-900/90 hover:bg-brand-800 text-sky-300 border border-sky-500/40 text-xs font-mono font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-lg backdrop-blur-md"
-            >
-              <TableColumnsSplit className="w-3.5 h-3.5" />
-              <span>Buka Studio Operator (70:30)</span>
-            </button>
-          </div>
-        </div>
+        <RobotCompanion
+          isFullscreen={true}
+          onToggleFullscreen={() => setIsRobotFullscreen(false)}
+          onOpenStudio={() => {
+            setIsRobotFullscreen(false);
+            setActiveSection('meetings');
+            setMeetingTab('operator');
+          }}
+          currentUtterance={activeUtterance}
+          detectedDivisionTask={detectedTask}
+        />
       )}
 
       {/* FAST SPEAKER SETUP MODAL */}
@@ -315,5 +304,19 @@ export default function DashboardWorkspace() {
       />
 
     </div>
+  );
+}
+
+export default function DashboardWorkspace() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-screen bg-[#050811] text-white flex items-center justify-center font-mono text-xs">
+          Memuat Workspace Noted...
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
